@@ -50,11 +50,11 @@ export const taskApi = createApi({
           },
         };
       },
-      invalidatesTags:["task"]
+      invalidatesTags: ["task"],
     }),
 
-    getTask: builder.query<any, {id:string}>({
-      query: ({id}) => ({
+    getTask: builder.query<any, { id: string }>({
+      query: ({ id }) => ({
         url: `/tasks/${id}`,
         method: "GET",
         headers: {
@@ -62,7 +62,30 @@ export const taskApi = createApi({
         },
       }),
     }),
+
+    updateTaskStatus: builder.mutation<
+      any,
+      {
+        status: string;
+        id: string;
+      }
+    >({
+      query: ({ status, id }) => {
+        return {
+          url: `tasks/${id}/status/`,
+          method: "PATCH",
+          body: {
+            status: status,
+          },
+          headers: {
+            "Content-Type": "application/json; charset=UTF-8",
+          },
+        };
+      },
+      invalidatesTags: ["task"],
+    }),
   }),
 });
 
-export const { useGetTasksQuery, useCreateTaskMutation, useGetTaskQuery } = taskApi;
+export const { useGetTasksQuery, useCreateTaskMutation, useGetTaskQuery, useUpdateTaskStatusMutation } =
+  taskApi;

@@ -1,9 +1,14 @@
-import { useState } from "react";
-import { useGetTaskQuery, useGetTasksQuery } from "../../api/task.api";
+import { useState, useEffect } from "react";
+import {
+  useGetTaskQuery,
+  useGetTasksQuery,
+  useUpdateTaskStatusMutation,
+} from "../../api/task.api";
 import { ITask } from "../../interface/ITask.interface";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import ViewTaskModal from "./ViewTaskModal";
+import { enqueueSnackbar } from "notistack";
 
 dayjs.extend(relativeTime);
 
@@ -11,19 +16,39 @@ const Task = () => {
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
   const [showModal, setShowModal] = useState<boolean>(false);
 
-  const toggleTask = (id: number) => {
-    setSelectedTasks((prev: any) =>
-      prev.includes(id) ? prev.filter((t: any) => t !== id) : [...prev, id]
-    );
-  };
-
   const { data, isLoading } = useGetTasksQuery({});
-  const { data:taskData, isLoading: isLoadingTaskData } = useGetTaskQuery({
+  const { data: taskData, isLoading: isLoadingTaskData } = useGetTaskQuery({
     id: selectedTask as string,
   });
-  
 
-  console.log("data", taskData);
+  const [
+    updateTaskStatus_,
+    { isLoading: isUpdatingTaskStatus, isSuccess, data: data__ },
+  ] = useUpdateTaskStatusMutation();
+
+  const updateTaskStatus = (id: string) => {
+    updateTaskStatus_({
+      status: "completed",
+      id,
+    })
+      .unwrap()
+      .catch((e: any) => {
+        console.log(e);
+        enqueueSnackbar(e?.data?.error, {
+          variant: "error",
+          anchorOrigin: { vertical: "top", horizontal: "right" },
+        });
+      });
+  };
+
+  useEffect(() => {
+    if (isSuccess) {
+      enqueueSnackbar(data__.message, {
+        variant: "success",
+        anchorOrigin: { vertical: "top", horizontal: "right" },
+      });
+    }
+  }, [isSuccess]);
 
   return (
     <div className="w-full h-[40vh] px-5 rounded-md">
@@ -40,16 +65,22 @@ const Task = () => {
           >
             <div className="flex items-start gap-3">
               <input
+              disabled={task.status === "completed" || task.status === "not_started"}
                 type="checkbox"
                 className="h-5 w-5 accent-blue-600"
-                // checked={selectedTasks.includes(task.id)}
-                // onChange={() => toggleTask(task.id)}
+                checked={task.status === "completed"}
+                onChange={() => updateTaskStatus(task.task_id)}
               />
               <div>
-                <p className="font-medium cursor-pointer -mt-2" onClick={()=>{
-                  setSelectedTask(task.task_id);
-                  setShowModal(true);
-                }}>{task.title}</p>
+                <p
+                  className="font-medium cursor-pointer -mt-2"
+                  onClick={() => {
+                    setSelectedTask(task.task_id);
+                    setShowModal(true);
+                  }}
+                >
+                  {task.title}
+                </p>
                 <div className="flex justify-start items-center gap-3">
                   <p className="text-sm text-gray-500">{task.start_time}</p> -{" "}
                   <p className="text-sm text-gray-500">{task.end_time}</p>
@@ -87,7 +118,13 @@ const Task = () => {
         </button>
       </div> */}
 
-      {showModal && <ViewTaskModal taskData={taskData} onClose={()=>setShowModal(false)} isLoading={isLoadingTaskData}/>}
+      {showModal && (
+        <ViewTaskModal
+          taskData={taskData}
+          onClose={() => setShowModal(false)}
+          isLoading={isLoadingTaskData}
+        />
+      )}
     </div>
   );
 };
