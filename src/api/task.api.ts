@@ -28,7 +28,41 @@ export const taskApi = createApi({
       }),
       providesTags: ["task"],
     }),
+
+    createTask: builder.mutation<
+      any,
+      {
+        title: string;
+        description: string;
+        start_date: string;
+        end_date: string;
+        start_time: string;
+        end_time: string;
+      }
+    >({
+      query: (payload) => {
+        return {
+          url: `task/create/`,
+          method: "POST",
+          body: payload,
+          headers: {
+            "Content-Type": "application/json; charset=UTF-8",
+          },
+        };
+      },
+      invalidatesTags:["task"]
+    }),
+
+    getTask: builder.query<any, {id:string}>({
+      query: ({id}) => ({
+        url: `/tasks/${id}`,
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json; charset=UTF-8",
+        },
+      }),
+    }),
   }),
 });
 
-export const { useGetTasksQuery } = taskApi;
+export const { useGetTasksQuery, useCreateTaskMutation, useGetTaskQuery } = taskApi;

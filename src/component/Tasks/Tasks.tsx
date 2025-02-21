@@ -1,25 +1,15 @@
 import { useState } from "react";
-import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
-import { useGetTasksQuery } from "../../api/task.api";
+import { useGetTaskQuery, useGetTasksQuery } from "../../api/task.api";
 import { ITask } from "../../interface/ITask.interface";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import ViewTaskModal from "./ViewTaskModal";
 
-const tasks = [
-  { id: 1, title: "Create Wireframe", time: "10:30 am - 11:30 am" },
-  { id: 2, title: "Design Landing Page", time: "11:30 am - 12:00 pm" },
-  { id: 3, title: "Go shopping", time: "12:30 pm - 1:30 pm" },
-  { id: 4, title: "Do my laundry", time: "1:30 pm - 2:10 pm" },
-  { id: 5, title: "Meeting with Product Manager", time: "2:15 pm - 4:30 pm" },
-  { id: 6, title: "Meeting with Stakeholder", time: "5:30 pm" },
-  {
-    id: 7,
-    title: "Create Wireframe",
-    time: "9:00 am - 10:00 am",
-    completed: true,
-  },
-];
+dayjs.extend(relativeTime);
 
 const Task = () => {
-  const [selectedTasks, setSelectedTasks] = useState([]);
+  const [selectedTask, setSelectedTask] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState<boolean>(false);
 
   const toggleTask = (id: number) => {
     setSelectedTasks((prev: any) =>
@@ -27,18 +17,22 @@ const Task = () => {
     );
   };
 
-  const { data, isloading } = useGetTasksQuery({});
+  const { data, isLoading } = useGetTasksQuery({});
+  const { data:taskData, isLoading: isLoadingTaskData } = useGetTaskQuery({
+    id: selectedTask as string,
+  });
+  
 
-  console.log("data", data);
+  console.log("data", taskData);
 
   return (
-    <div className="w-full h-full px-5 rounded-md">
+    <div className="w-full h-[40vh] px-5 rounded-md">
       <h2 className="text-xl font-semibold mb-4">My Tasks</h2>
-      <div className="divide-y">
+      <div className="">
         {data?.results?.map((task: ITask) => (
-          <label
+          <div
             key={task.task_id}
-            className={`flex items-center justify-between p-3 ${
+            className={`flex border-b border-gray-200 items-center justify-between p-3 ${
               task.status === "completed"
                 ? "text-gray-400 line-through"
                 : "text-gray-800"
@@ -52,20 +46,25 @@ const Task = () => {
                 // onChange={() => toggleTask(task.id)}
               />
               <div>
-                <p className="font-medium -mt-2">{task.title}</p>
+                <p className="font-medium cursor-pointer -mt-2" onClick={()=>{
+                  setSelectedTask(task.task_id);
+                  setShowModal(true);
+                }}>{task.title}</p>
                 <div className="flex justify-start items-center gap-3">
                   <p className="text-sm text-gray-500">{task.start_time}</p> -{" "}
                   <p className="text-sm text-gray-500">{task.end_time}</p>
                 </div>
               </div>
             </div>
-            <span className="text-sm text-gray-500">Today</span>
-          </label>
+            <span className="text-sm text-gray-500">
+              {dayjs(task.created_at).fromNow()}
+            </span>
+          </div>
         ))}
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between border-t mt-4 pt-4">
+      {/* <div className="flex mt-12 items-center justify-between border-t mt-4 pt-4">
         <button className="flex items-center gap-1 text-blue-600 hover:underline">
           <FaChevronLeft className="h-4 w-4" />
           Previous
@@ -86,7 +85,9 @@ const Task = () => {
           Next
           <FaChevronRight className="h-4 w-4" />
         </button>
-      </div>
+      </div> */}
+
+      {showModal && <ViewTaskModal taskData={taskData} onClose={()=>setShowModal(false)} isLoading={isLoadingTaskData}/>}
     </div>
   );
 };

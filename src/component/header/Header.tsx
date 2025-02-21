@@ -1,6 +1,9 @@
 import React from 'react'
 
-export default function Header() {
+interface IHeader{
+  setShowCreatetaskModal: React.Dispatch<React.SetStateAction<boolean>>
+}
+export default function Header({setShowCreatetaskModal}:IHeader) {
   return (
     <div className='w-full flex justify-between items-center '>
         <div>
@@ -8,7 +11,7 @@ export default function Header() {
         <p className='text-[#475467]'>You got some task to do. </p>
         </div>
         
-        <button className='p-3 px-6 border-2 rounded-lg bg-[#3F5BF6] text-white'>Create New Task</button>
+        <button className='p-3 px-6 border-2 cursor-pointer rounded-lg bg-[#3F5BF6] text-white' onClick={()=>setShowCreatetaskModal(true)}>Create New Task</button>
     </div>
   )
 }

@@ -13,7 +13,7 @@ const Calendar = () => {
   const days = Array.from({ length: 42 }, (_, i) => addDays(startDate, i));
 
   return (
-    <div className="w-full mx-auto border p-4 bg-white rounded-md shadow-md">
+    <div className="w-full mx-auto border border-gray-200 p-4 bg-white rounded-md shadow-md">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <button
